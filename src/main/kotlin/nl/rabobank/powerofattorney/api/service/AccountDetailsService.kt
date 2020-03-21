@@ -1,11 +1,9 @@
 package nl.rabobank.powerofattorney.api.service
 
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import nl.rabobank.powerofattorney.api.model.AccountDetails
 import nl.rabobank.powerofattorney.api.model.CardType
 import nl.rabobank.powerofattorney.api.model.PowerOfAttorney
