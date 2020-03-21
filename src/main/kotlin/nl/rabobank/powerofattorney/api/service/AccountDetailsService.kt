@@ -23,15 +23,31 @@ class AccountDetailsService {
         powerOfAttorneyService.findByUser(userId)
                 .map { async { buildAccountDetails(userId, it) } }
                 .awaitAll()
+                .filterNotNull()
     }
 
     private suspend fun buildAccountDetails(userId: String, powerOfAttorney: PowerOfAttorney) = coroutineScope {
-        val cardsInfo = powerOfAttorney.cards.groupBy({ it.type }, { it.id })
-        val details = AccountDetails(userId)
+        val account = accountService.getAccount(powerOfAttorney.account)
 
-        val account = async {
-            accountService.getAccount(powerOfAttorney.account)
+        if (account?.ended != null) {
+            return@coroutineScope null
         }
+
+        val details = AccountDetails(id = powerOfAttorney.id,
+                grantor = powerOfAttorney.grantor,
+                direction = powerOfAttorney.direction,
+                authorizations = powerOfAttorney.authorizations,
+                userId = userId,
+                account = account)
+
+        loadCards(details, powerOfAttorney)
+        details
+    }
+
+    private suspend fun loadCards(details: AccountDetails,
+                                  powerOfAttorney: PowerOfAttorney) = coroutineScope {
+        val cardsInfo = powerOfAttorney.cards.groupBy({ it.type }, { it.id })
+
         val creditCards = async {
             cardService.getCreditCards(cardsInfo[CardType.CREDIT_CARD])
         }
@@ -39,9 +55,7 @@ class AccountDetailsService {
             cardService.getDebitCards(cardsInfo[CardType.DEBIT_CARD])
         }
 
-        details.account = account.await()
         details.creditCards = creditCards.await().filterNotNull()
         details.debitCards = debitCards.await().filterNotNull()
-        details
     }
 }

@@ -1,7 +1,7 @@
 package nl.rabobank.powerofattorney.api.model
 
 data class Account(val owner: String,
-                   val balance: String,
+                   val balance: Long,
                    val created: String,
                    val ended: String?)
 
@@ -55,7 +55,11 @@ data class PowerOfAttorney(val id: String,
 data class PowerOfAttorneyList(val id: String)
 
 
-data class AccountDetails(val userId: String,
+data class AccountDetails(val id: String,
+                          val userId: String,
+                          val grantor: String,
+                          val direction: String,
+                          val authorizations: List<AccountAuthorization>,
                           var account: Account? = null,
                           var creditCards: List<CreditCard>? = null,
                           var debitCards: List<DebitCard>? = null)
