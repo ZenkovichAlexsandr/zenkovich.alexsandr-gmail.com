@@ -1,0 +1,9 @@
+FROM openjdk:11-jdk-slim
+MAINTAINER Alexander Zenkovich <zenkovich.alexsandr@gmail.com>
+
+WORKDIR /home/stub
+
+COPY stub.jar app.jar
+
+ENTRYPOINT ["java","-jar","app.jar"]
+EXPOSE 8080

@@ -1,0 +1,8 @@
+server:
+  port: 8081
+
+stup:
+  accounts: http://${STUB_HOST:localhost}:8080/accounts
+  creditCards: http://${STUB_HOST:localhost}:8080/credit-cards
+  debitCards: http://${STUB_HOST:localhost}:8080/debit-cards
+  powerOfAttorneys: http://${STUB_HOST:localhost}:8080/power-of-attorneys
