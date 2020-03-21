@@ -1,11 +1,16 @@
 package nl.rabobank.powerofattorney.api.service
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import nl.rabobank.powerofattorney.api.model.AccountDetails
 import nl.rabobank.powerofattorney.api.model.CardType
 import nl.rabobank.powerofattorney.api.model.PowerOfAttorney
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import java.util.concurrent.CompletableFuture.allOf
 
 @Service
 class AccountDetailsService {
@@ -16,25 +21,29 @@ class AccountDetailsService {
     @Autowired
     private lateinit var accountService: AccountService
 
-    fun getDetails(userId: String) = powerOfAttorneyService.findByUser(userId)
-            .map { buildAccountDetails(userId, it) }
+    fun getDetails(userId: String) = runBlocking {
+        powerOfAttorneyService.findByUser(userId)
+                .map { async { buildAccountDetails(userId, it) } }
+                .awaitAll()
+    }
 
-    private fun buildAccountDetails(userId: String, powerOfAttorney: PowerOfAttorney): AccountDetails {
+    private suspend fun buildAccountDetails(userId: String, powerOfAttorney: PowerOfAttorney) = coroutineScope {
         val cardsInfo = powerOfAttorney.cards.groupBy({ it.type }, { it.id })
         val details = AccountDetails(userId)
 
-        allOf(
-                accountService.getAccount(powerOfAttorney.account).thenAccept {
-                    details.account = it
-                },
-                cardService.getCreditCards(cardsInfo[CardType.CREDIT_CARD]).thenAccept {
-                    details.creditCards = it.filterNotNull()
-                },
-                cardService.getDebitCards(cardsInfo[CardType.DEBIT_CARD]).thenAccept {
-                    details.debitCards = it.filterNotNull()
-                }
-        )
+        val account = async {
+            accountService.getAccount(powerOfAttorney.account)
+        }
+        val creditCards = async {
+            cardService.getCreditCards(cardsInfo[CardType.CREDIT_CARD])
+        }
+        val debitCards = async {
+            cardService.getDebitCards(cardsInfo[CardType.DEBIT_CARD])
+        }
 
-        return details
+        details.account = account.await()
+        details.creditCards = creditCards.await().filterNotNull()
+        details.debitCards = debitCards.await().filterNotNull()
+        details
     }
 }

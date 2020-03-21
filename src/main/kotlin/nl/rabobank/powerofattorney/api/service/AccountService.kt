@@ -1,11 +1,12 @@
 package nl.rabobank.powerofattorney.api.service
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
 import nl.rabobank.powerofattorney.api.model.Account
-import java.util.concurrent.CompletableFuture.supplyAsync
 
 const val ACCOUNT_PREFIX = "NL23RABO"
 
@@ -16,7 +17,7 @@ class AccountService {
     @Autowired
     private lateinit var restTemplate: RestTemplate
 
-    fun getAccount(accountNumber: String) = supplyAsync {
+    suspend fun getAccount(accountNumber: String) = withContext(Dispatchers.IO) {
         restTemplate.getForObject("$accountsUrl/${accountNumber.drop(ACCOUNT_PREFIX.length)}", Account::class.java)
     }
 }
