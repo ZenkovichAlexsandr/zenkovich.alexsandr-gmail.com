@@ -1,6 +1,5 @@
 package nl.rabobank.powerofattorney.api.controller
 
-import nl.rabobank.powerofattorney.api.model.AccountDetails
 import nl.rabobank.powerofattorney.api.service.AccountDetailsService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
@@ -15,11 +14,5 @@ class AccountDetailsController {
     private lateinit var service: AccountDetailsService
 
     @GetMapping("/{userId}")
-    fun get(@PathVariable userId: String): List<AccountDetails> {
-        val start = System.currentTimeMillis()
-        val details = service.getDetails(userId)
-        System.out.println(System.currentTimeMillis() - start)
-
-        return details
-    }
+    fun get(@PathVariable userId: String) = service.getDetails(userId)
 }
